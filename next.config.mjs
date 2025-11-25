@@ -113,21 +113,6 @@ const nextConfig = {
         ],
       },
       {
-        source: "/services/:path*",
-        has: [
-          {
-            type: "host",
-            value: process.env.NEXT_PUBLIC_WEBHOOK_BASE_HOST,
-          },
-        ],
-        headers: [
-          {
-            key: "X-Robots-Tag",
-            value: "noindex",
-          },
-        ],
-      },
-      {
         source: "/api/webhooks/services/:path*",
         headers: [
           {
@@ -146,6 +131,31 @@ const nextConfig = {
         ],
       },
     ];
+
+    // Conditionally add webhook host header if configured
+    if (process.env.NEXT_PUBLIC_WEBHOOK_BASE_HOST) {
+      return [
+        ...headers.slice(0, headers.length - 2),
+        {
+          source: "/services/:path*",
+          has: [
+            {
+              type: "host",
+              value: process.env.NEXT_PUBLIC_WEBHOOK_BASE_HOST,
+            },
+          ],
+          headers: [
+            {
+              key: "X-Robots-Tag",
+              value: "noindex",
+            },
+          ],
+        },
+        ...headers.slice(headers.length - 2),
+      ];
+    }
+
+    return headers;
   },
   experimental: {
     outputFileTracingIncludes: {
