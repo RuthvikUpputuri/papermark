@@ -93,6 +93,56 @@ npm run dev
 
 Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
+## Self-hosting
+
+Papermark includes production-ready Docker assets so you can run the entire stack (Next.js app, PostgreSQL, and S3-compatible blob storage) without installing Node locally.
+
+**Important:** The application requires certain services to be configured even if you don't plan to use them. At minimum, provide placeholder values for Redis, Slack, and Hanko in your `.env` file to allow the build to complete.
+
+### Docker Compose quick start
+
+1. Reuse the `.env` you created earlier (or copy `.env.example` to `.env` now) and tailor the values for production.
+2. **Required**: Add placeholder/dummy values for services you won't use:
+   ```dotenv
+   # Minimum required for build to succeed
+   UPSTASH_REDIS_REST_URL=http://localhost:6379
+   UPSTASH_REDIS_REST_TOKEN=dummy-token
+   UPSTASH_REDIS_REST_LOCKER_URL=http://localhost:6379
+   UPSTASH_REDIS_REST_LOCKER_TOKEN=dummy-token
+   SLACK_APP_INSTALL_URL=https://slack.com
+   SLACK_CLIENT_ID=dummy-id
+   SLACK_CLIENT_SECRET=dummy-secret
+   SLACK_INTEGRATION_ID=dummy-integration
+   ```
+3. Adjust secrets (e.g. `NEXTAUTH_SECRET`, `NEXT_PRIVATE_DOCUMENT_PASSWORD_KEY`) and set the public URLs that end users will visit.
+4. For the bundled MinIO/Compose stack, switch storage to S3 mode and align the credentials:
+   ```dotenv
+   NEXT_PUBLIC_UPLOAD_TRANSPORT="s3"
+   NEXT_PRIVATE_UPLOAD_ENDPOINT=http://minio:9000
+   NEXT_PRIVATE_UPLOAD_BUCKET=papermark
+   NEXT_PRIVATE_UPLOAD_REGION=us-east-1
+   NEXT_PRIVATE_UPLOAD_ACCESS_KEY_ID=papermark
+   NEXT_PRIVATE_UPLOAD_SECRET_ACCESS_KEY=papermarksecret
+   NEXT_PRIVATE_UPLOAD_DISTRIBUTION_HOST=localhost
+   ```
+   Update the Postgres connection strings if you run an external database instead of the bundled container.
+5. Launch the stack:
+  ```bash
+  docker compose -f docker-compose.yml up -d
+  ```
+
+The bundled Compose file exposes Papermark on port `3000`, provisions Postgres `16-alpine`, and uses MinIO for S3-compatible storage. The same configuration is published as the community image [`docker.io/ruthvikupputuri/papermark`](https://hub.docker.com/r/ruthvikupputuri/papermark) – see `DOCKER_HUB_README.md` for a full environment reference.
+
+### Environment checklist
+
+Set the following groups of variables before going live:
+
+- **Core URLs & secrets:** `NEXTAUTH_URL`, `NEXT_PUBLIC_BASE_URL`, `NEXTAUTH_SECRET`, `INTERNAL_API_KEY`.
+- **Database:** `POSTGRES_PRISMA_URL` (or `DATABASE_URL`), matching the connection string for your Postgres instance.
+- **Storage:** `NEXT_PRIVATE_UPLOAD_*` keys. The Compose setup defaults to MinIO credentials and bucket names defined in `docker-compose.yml`.
+- **Required placeholders:** Even if not using these services, provide dummy values: `UPSTASH_REDIS_REST_*`, `SLACK_*` (see Docker quick start for examples).
+- **Optional integrations:** Provide real API keys only for services you need (Resend, QStash, Trigger.dev, OAuth providers, Hanko).
+
 ## Tinybird Instructions
 
 To prepare the Tinybird database, follow these steps:
@@ -129,6 +179,15 @@ pipenv update tinybird-cli
 Papermark is an open-source project, and we welcome contributions from the community.
 
 If you'd like to contribute, please fork the repository and make any changes you'd like. Pull requests are warmly welcome.
+
+Before opening a pull request, run the quality checks locally:
+
+```bash
+npm run lint
+npm run build
+```
+
+Address all eslint warnings and ensure the production build succeeds. If your change affects Prisma schemas or migrations, regenerate artifacts with `npm run dev:prisma` and commit the generated files.
 
 ### Our Contributors ✨
 

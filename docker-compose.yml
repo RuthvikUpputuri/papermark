@@ -1,0 +1,60 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Compile-time public URLs ensure prerendered assets match runtime config.
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_MARKETING_URL: ${NEXT_PUBLIC_MARKETING_URL:-http://localhost:3000}
+        NEXT_PUBLIC_APP_BASE_HOST: ${NEXT_PUBLIC_APP_BASE_HOST:-localhost}
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: papermark
+      POSTGRES_PASSWORD: papermark
+      POSTGRES_DB: papermark
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U papermark"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2024-10-13T13-34-11Z
+    command: server /data --console-address ":9090"
+    environment:
+      MINIO_ROOT_USER: papermark
+      MINIO_ROOT_PASSWORD: papermarksecret
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9090:9090"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  minio_data:
