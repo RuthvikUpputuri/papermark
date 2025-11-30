@@ -28,7 +28,7 @@ export function WorkflowList({ workflows }: WorkflowListProps) {
     if (workflow.entryLink.domainSlug && workflow.entryLink.slug) {
       return `https://${workflow.entryLink.domainSlug}/${workflow.entryLink.slug}`;
     }
-    return `${process.env.NEXT_PUBLIC_MARKETING_URL || "https://www.papermark.io"}/view/${workflow.entryLink.id}`;
+    return `${process.env.NEXT_PUBLIC_MARKETING_URL || "http://localhost:3000"}/view/${workflow.entryLink.id}`;
   };
 
   return (

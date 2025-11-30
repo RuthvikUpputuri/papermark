@@ -145,7 +145,9 @@ export async function processEmailQueue() {
 
                   return {
                     email: {
-                      from: "Papermark <system@papermark.io>",
+                      from: process.env.EMAIL_FROM_SYSTEM
+                        ? `${process.env.EMAIL_FROM_SYSTEM_NAME || "System"} <${process.env.EMAIL_FROM_SYSTEM}>`
+                        : `System <no-reply@${process.env.NEXT_PUBLIC_BASE_URL ? new URL(process.env.NEXT_PUBLIC_BASE_URL).hostname : "papermark.io"}>`,
                       to: userTeam.user.email || "delivered@resend.dev",
                       subject: "2024 in Review: Your Year with Papermark",
                       react,

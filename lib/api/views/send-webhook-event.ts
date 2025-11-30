@@ -66,13 +66,17 @@ export async function sendLinkViewWebhook({
     }
 
     // Prepare link data for webhook
+    const appDomain = process.env.NEXT_PUBLIC_BASE_URL
+      ? new URL(process.env.NEXT_PUBLIC_BASE_URL).hostname.replace(/^(www\.|app\.)/, "www.")
+      : "www.papermark.com";
+
     const linkData = {
       id: link.id,
       url: link.domainId
         ? `https://${link.domainSlug}/${link.slug}`
-        : `https://www.papermark.com/view/${link.id}`,
+        : `https://${appDomain}/view/${link.id}`,
       domain:
-        link.domainId && link.domainSlug ? link.domainSlug : "papermark.com",
+        link.domainId && link.domainSlug ? link.domainSlug : appDomain.replace(/^www\./, ""),
       key: link.domainId && link.slug ? link.slug : `view/${link.id}`,
       name: link.name,
       expiresAt: link.expiresAt?.toISOString() || null,

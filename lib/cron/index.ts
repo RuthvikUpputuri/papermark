@@ -14,6 +14,8 @@ export const receiver = new Receiver({
   nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY || "",
 });
 
-export const qstash = new Client({
-  token: process.env.QSTASH_TOKEN || "",
-});
+export const qstash = process.env.QSTASH_TOKEN
+  ? new Client({
+      token: process.env.QSTASH_TOKEN,
+    })
+  : null;

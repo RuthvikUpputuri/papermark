@@ -1,47 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  pageExtensions: ["js", "jsx", "ts", "tsx", "mdx"],
-  images: {
-    minimumCacheTTL: 2592000, // 30 days
-    remotePatterns: prepareRemotePatterns(),
-  },
-  skipTrailingSlashRedirect: true,
-  assetPrefix:
-    process.env.NODE_ENV === "production" &&
-    process.env.VERCEL_ENV === "production"
-      ? process.env.NEXT_PUBLIC_BASE_URL
-      : undefined,
-  async redirects() {
-    return [
-      {
-        source: "/",
-        destination: "/dashboard",
-        permanent: false,
-        has: [
-          {
-            type: "host",
-            value: process.env.NEXT_PUBLIC_APP_BASE_HOST,
-          },
-        ],
-      },
-      {
-        // temporary redirect set on 2025-10-22
-        source: "/view/cmdn06aw00001ju04jgsf8h4f",
-        destination: "/view/cmh0uiv6t001mjm04sk10ecc8",
-        permanent: false,
-      },
-      {
-        source: "/settings",
-        destination: "/settings/general",
-        permanent: false,
-      },
-    ];
-  },
   async headers() {
     const isDev = process.env.NODE_ENV === "development";
 
-    return [
+    const baseHeaders = [
       {
         // Default headers for all routes
         source: "/:path*",
@@ -132,30 +95,27 @@ const nextConfig = {
       },
     ];
 
-    // Conditionally add webhook host header if configured
-    if (process.env.NEXT_PUBLIC_WEBHOOK_BASE_HOST) {
-      return [
-        ...headers.slice(0, headers.length - 2),
-        {
-          source: "/services/:path*",
-          has: [
-            {
-              type: "host",
-              value: process.env.NEXT_PUBLIC_WEBHOOK_BASE_HOST,
-            },
-          ],
-          headers: [
-            {
-              key: "X-Robots-Tag",
-              value: "noindex",
-            },
-          ],
-        },
-        ...headers.slice(headers.length - 2),
-      ];
+    const webhookHost = process.env.NEXT_PUBLIC_WEBHOOK_BASE_HOST;
+
+    if (webhookHost) {
+      baseHeaders.push({
+        source: "/services/:path*",
+        has: [
+          {
+            type: "host",
+            value: webhookHost,
+          },
+        ],
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex",
+          },
+        ],
+      });
     }
 
-    return headers;
+    return baseHeaders;
   },
   experimental: {
     outputFileTracingIncludes: {
@@ -177,11 +137,6 @@ function prepareRemotePatterns() {
     { protocol: "https", hostname: "media.licdn.com" },
     // google img
     { protocol: "https", hostname: "lh3.googleusercontent.com" },
-    // papermark img
-    { protocol: "https", hostname: "www.papermark.io" },
-    { protocol: "https", hostname: "app.papermark.io" },
-    { protocol: "https", hostname: "www.papermark.com" },
-    { protocol: "https", hostname: "app.papermark.com" },
     // useragent img
     { protocol: "https", hostname: "faisalman.github.io" },
     // special document pages

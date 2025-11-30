@@ -4,6 +4,7 @@ import { render, toPlainText } from "@react-email/render";
 import { Resend } from "resend";
 
 import { log, nanoid } from "@/lib/utils";
+import { getFormattedEmailFrom, getEmailFromSupport } from "@/lib/config/domain";
 
 export const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -44,24 +45,23 @@ export const sendEmail = async ({
   const html = await render(react);
   const plainText = toPlainText(html);
 
+  // Determine the from address based on email type
   const fromAddress =
     from ??
     (marketing
-      ? "Marc from Papermark <marc@ship.papermark.io>"
+      ? getFormattedEmailFrom("marketing")
       : system
-        ? "Papermark <system@papermark.io>"
+        ? getFormattedEmailFrom("system")
         : verify
-          ? "Papermark <system@verify.papermark.io>"
-          : !!scheduledAt
-            ? "Marc Seitz <marc@papermark.io>"
-            : "Marc from Papermark <marc@papermark.io>");
+          ? getFormattedEmailFrom("system")
+          : getFormattedEmailFrom("system"));
 
   try {
     const { data, error } = await resend.emails.send({
       from: fromAddress,
       to: test ? "delivered@resend.dev" : to,
       cc: cc,
-      replyTo: marketing ? "marc@papermark.io" : replyTo,
+      replyTo: marketing ? getEmailFromSupport() : replyTo,
       subject,
       react,
       scheduledAt,

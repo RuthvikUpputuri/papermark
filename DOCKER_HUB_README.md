@@ -74,9 +74,7 @@ volumes:
 
 ## Environment Template
 
-Copy `.env.example` from the repository (or reuse the `.env` you already configured for development) and ensure it contains the production-ready values below.
-
-**Important:** The build process requires certain variables to be set even if you don't plan to use those services. Provide placeholder/dummy values for Redis and Slack at minimum.
+Copy `.env.example` from the repository (or reuse the `.env` you already configured for development) and ensure it contains the production-ready values below. Values marked as optional can be left blank; the image includes fallbacks that disable those integrations gracefully (Slack, Hanko passkeys, Upstash Redis, QStash, Resend, etc.).
 
 ```dotenv
 # Core URLs
@@ -116,13 +114,13 @@ QSTASH_TOKEN=
 QSTASH_CURRENT_SIGNING_KEY=
 QSTASH_NEXT_SIGNING_KEY=
 
-# Optional Slack app & webhooks (provide dummy values if not using Slack)
-SLACK_APP_INSTALL_URL=https://slack.com
-SLACK_CLIENT_ID=dummy-id
-SLACK_CLIENT_SECRET=dummy-secret
-SLACK_INTEGRATION_ID=dummy-integration
+# Optional Slack app & webhooks
+SLACK_APP_INSTALL_URL=
+SLACK_CLIENT_ID=
+SLACK_CLIENT_SECRET=
+SLACK_INTEGRATION_ID=
 PPMK_SLACK_WEBHOOK_URL=
-PPMK_SLACK_WEBHOOK_URL=
+PPMK_TRIAL_SLACK_WEBHOOK_URL=
 
 # Optional OAuth providers
 GOOGLE_CLIENT_ID=
@@ -143,25 +141,20 @@ TRIGGER_API_URL=https://api.trigger.dev
 NEXT_PUBLIC_WEBHOOK_BASE_URL=
 NEXT_PUBLIC_WEBHOOK_BASE_HOST=
 
-# Optional Redis REST (Upstash) credentials – provide dummy values if not using Upstash
-UPSTASH_REDIS_REST_URL=http://localhost:6379
-UPSTASH_REDIS_REST_TOKEN=dummy-token
-UPSTASH_REDIS_REST_LOCKER_URL=http://localhost:6379
-UPSTASH_REDIS_REST_LOCKER_TOKEN=dummy-token
+# Optional Redis REST (Upstash) credentials – leave blank to use in-memory fallback
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+UPSTASH_REDIS_REST_LOCKER_URL=
+UPSTASH_REDIS_REST_LOCKER_TOKEN=
 ```
-
-### Required Placeholders
-
-The application build process checks for certain environment variables even if the features aren't enabled. You must provide at minimum:
-
-* **Redis (Upstash)** – Use dummy localhost values if not connecting to real Upstash: `UPSTASH_REDIS_REST_URL=http://localhost:6379`, `UPSTASH_REDIS_REST_TOKEN=dummy-token`, plus the same for `_LOCKER_` variants.
-* **Slack** – Use placeholder values if not integrating Slack: `SLACK_CLIENT_ID=dummy-id`, `SLACK_CLIENT_SECRET=dummy-secret`, `SLACK_APP_INSTALL_URL=https://slack.com`, `SLACK_INTEGRATION_ID=dummy-integration`.
 
 ### Optional Integrations
 
-* **Passkeys (Hanko)** – Only needed if you want WebAuthn/passkey authentication. Omit or use placeholder values otherwise.
-* **QStash, Resend, Trigger.dev, OAuth providers** – Only required if you use those specific features.
-* For detailed environment setup, refer to the main project `README.md`.
+* **Slack notifications** – remain disabled unless `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET`, and related webhook settings are supplied; the image logs a warning but continues.
+* **Passkeys (Hanko)** – the passkey provider is only registered when both `HANKO_API_KEY` and `NEXT_PUBLIC_HANKO_TENANT_ID` are set.
+* **Upstash Redis / rate limiting** – when the REST credentials are omitted, the app falls back to an in-memory store suitable for single-instance deployments.
+* **QStash background jobs, Resend email, Trigger.dev, OAuth providers** – all optional; endpoints short-circuit gracefully when the corresponding env vars are missing.
+* For a broader walk-through of environment groups (core URLs, database, storage, optional services) refer to the project `README.md`.
 
 ## Publishing Notes
 

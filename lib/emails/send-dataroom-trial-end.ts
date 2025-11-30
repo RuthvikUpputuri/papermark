@@ -1,4 +1,5 @@
 import { sendEmail } from "@/lib/resend";
+import { getMarketingEmail, getSupportEmail } from "@/lib/config/domain";
 
 import DataroomTrialEnd from "@/components/emails/dataroom-trial-end";
 
@@ -17,7 +18,7 @@ export const sendDataroomTrialEndEmail = async (params: {
   try {
     await sendEmail({
       to: email as string,
-      from: "Marc Seitz <marc@papermark.com>",
+      from: getMarketingEmail(),
       subject,
       react: emailTemplate,
       test: process.env.NODE_ENV === "development",

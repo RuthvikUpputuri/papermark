@@ -1,4 +1,5 @@
 import { sendEmail } from "@/lib/resend";
+import { getMarketingEmail, getSupportEmail } from "@/lib/config/domain";
 
 import UpgradePersonalEmail from "@/components/emails/upgrade-personal-welcome";
 
@@ -28,7 +29,7 @@ export const sendUpgradePersonalEmail = async (
   try {
     await sendEmail({
       to: email as string,
-      from: "Iuliia Shnai <iuliia@papermark.com>",
+      from: getMarketingEmail(),
       subject: "Your Papermark account is ready",
       react: emailTemplate,
       test: process.env.NODE_ENV === "development",

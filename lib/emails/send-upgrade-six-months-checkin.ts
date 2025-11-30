@@ -1,4 +1,5 @@
 import { sendEmail } from "@/lib/resend";
+import { getMarketingEmail } from "@/lib/config/domain";
 
 import SixMonthMilestoneEmail from "@/components/emails/upgrade-six-month-checkin";
 
@@ -23,7 +24,7 @@ export const sendSixMonthMilestoneEmail = async (
     await sendEmail({
       to: email as string,
       subject: "6 months with Papermark",
-      from: "Marc Seitz <marc@papermark.com>",
+      from: getMarketingEmail(),
       react: emailTemplate,
       test: process.env.NODE_ENV === "development",
       scheduledAt: sixAndHalfMonthsFromNow,

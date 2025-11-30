@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       where: {
         slug: {
           not: {
-            in: ["papermark.io", "papermark.com"],
+            in: [process.env.NEXT_PUBLIC_APP_BASE_HOST || "localhost"],
           },
         },
       },

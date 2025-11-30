@@ -9,6 +9,38 @@ import IncomingWebhookMiddleware, {
 } from "./lib/middleware/incoming-webhooks";
 import PostHogMiddleware from "./lib/middleware/posthog";
 
+function normalizeHost(host?: string | null) {
+  if (!host) return "";
+  return host.toLowerCase().split(":")[0];
+}
+
+const envAppHosts = (() => {
+  const values = [
+    process.env.NEXT_PUBLIC_APP_BASE_HOST,
+    process.env.NEXT_PUBLIC_BASE_URL,
+    process.env.NEXT_PUBLIC_MARKETING_URL,
+    process.env.NEXTAUTH_URL,
+  ];
+
+  const hosts = new Set<string>();
+
+  for (const value of values) {
+    if (!value) continue;
+
+    try {
+      const parsed = new URL(value);
+      hosts.add(parsed.hostname.toLowerCase());
+      continue;
+    } catch (error) {
+      // fall through – value may already be a bare hostname
+    }
+
+    hosts.add(value.toLowerCase());
+  }
+
+  return hosts;
+})();
+
 function isAnalyticsPath(path: string) {
   // Create a regular expression
   // ^ - asserts position at start of the line
@@ -19,18 +51,31 @@ function isAnalyticsPath(path: string) {
   return pattern.test(path);
 }
 
+function isKnownAppHost(host: string) {
+  const normalized = normalizeHost(host);
+  if (!normalized) return false;
+
+  if (normalized.includes("localhost")) return true;
+  if (normalized.endsWith(".vercel.app")) return true;
+  if (envAppHosts.has(normalized)) return true;
+
+  return false;
+}
+
 function isCustomDomain(host: string) {
-  return (
-    (process.env.NODE_ENV === "development" &&
-      (host?.includes(".local") || host?.includes("papermark.dev"))) ||
-    (process.env.NODE_ENV !== "development" &&
-      !(
-        host?.includes("localhost") ||
-        host?.includes("papermark.io") ||
-        host?.includes("papermark.com") ||
-        host?.endsWith(".vercel.app")
-      ))
-  );
+  const normalized = normalizeHost(host);
+
+  if (!normalized) {
+    return false;
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    const looksCustom =
+      normalized.includes(".local") || normalized.includes("papermark.dev");
+    return looksCustom && !isKnownAppHost(normalized);
+  }
+
+  return !isKnownAppHost(normalized);
 }
 
 export const config = {

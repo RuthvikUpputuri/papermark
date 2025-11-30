@@ -1,4 +1,5 @@
 import { sendEmail } from "@/lib/resend";
+import { getMarketingEmail, getSupportEmail } from "@/lib/config/domain";
 
 import WelcomeEmail from "@/components/emails/welcome";
 
@@ -10,7 +11,7 @@ export const sendWelcomeEmail = async (params: CreateUserEmailProps) => {
   try {
     await sendEmail({
       to: email as string,
-      from: "Marc from Papermark <marc@papermark.com>",
+      from: getMarketingEmail(),
       subject: "Welcome to Papermark!",
       react: emailTemplate,
       test: process.env.NODE_ENV === "development",

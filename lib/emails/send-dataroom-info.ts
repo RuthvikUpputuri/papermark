@@ -1,4 +1,5 @@
 import { sendEmail } from "@/lib/resend";
+import { getMarketingEmail } from "@/lib/config/domain";
 
 import DataRoomsInformationEmail from "@/components/emails/data-rooms-information";
 
@@ -27,7 +28,7 @@ export const sendDataroomInfoEmail = async (
   try {
     await sendEmail({
       to: email as string,
-      from: "Marc Seitz <marc@papermark.com>",
+      from: getMarketingEmail(),
       subject,
       react: emailTemplate,
       test: process.env.NODE_ENV === "development",
